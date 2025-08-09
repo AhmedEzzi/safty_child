@@ -3,9 +3,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:safty_children/core/helpers/spacer.dart';
 import 'package:safty_children/core/themeing/app_colors.dart';
 import 'package:safty_children/core/themeing/app_styles.dart';
+import 'package:safty_children/features/test/data/questions%20stage/stage_one_intro.dart';
+import 'package:safty_children/features/test/data/questions%20stage/stage_two_questions.dart';
+
+import 'package:safty_children/features/test/data/questions%20stage/stage_four_questions.dart';
 import 'package:safty_children/features/test/presentation/views/widgets/main_button.dart';
 
-import '../../../data/questions_repository.dart';
+import '../../../data/questions stage/stage_thee_questions.dart';
 import '../../review_answers_screen.dart';
 
 class CustomDialog extends StatelessWidget {
@@ -92,7 +96,12 @@ class CustomDialog extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (_) => ReviewAnswersScreen(
                             userAnswers: userAnswers,
-                            allQuestions: getAllLabeledQuestions().map((q) => q.question).toList(),
+                            allStageQuestions: [
+                              stageOneIntro,      // Stage 0 (Stage 1)
+                              stageTwoQuestions,  // Stage 1 (Stage 2)
+                              stageThreeQuestions,// Stage 2 (Stage 3)
+                              stageFourQuestions, // Stage 3 (Stage 4)
+                            ],
                           ),
                         ),
                       );

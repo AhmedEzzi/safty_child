@@ -3,12 +3,12 @@ import '../models/question_model.dart';
 
 class ReviewAnswersScreen extends StatelessWidget {
   final Map<String, dynamic> userAnswers;
-  final List<QuestionModel> allQuestions;
+  final List<List<QuestionModel>> allStageQuestions;
 
   const ReviewAnswersScreen({
     super.key,
     required this.userAnswers,
-    required this.allQuestions,
+    required this.allStageQuestions,
   });
 
   @override
@@ -16,15 +16,22 @@ class ReviewAnswersScreen extends StatelessWidget {
     final List<_QuestionWithIndex> incorrectQuestions = [];
 
     userAnswers.forEach((key, answer) {
-      if (key.startsWith('0_')) return; // تجاهل الأسئلة التعريفية
-
       final parts = key.split('_');
       if (parts.length != 2) return;
 
+      final stageIndex = int.tryParse(parts[0]);
       final questionIndex = int.tryParse(parts[1]);
-      if (questionIndex == null || questionIndex >= allQuestions.length) return;
+      if (stageIndex == null || questionIndex == null) return;
 
-      final question = allQuestions[questionIndex];
+      if (stageIndex >= allStageQuestions.length) return;
+
+      final stageQuestions = allStageQuestions[stageIndex];
+      if (questionIndex >= stageQuestions.length) return;
+
+      final question = stageQuestions[questionIndex];
+
+      // Skip introductory questions (stage 0) or questions without correct answers
+      if (stageIndex == 0 || question.correctAnswer.isEmpty) return;
 
       if (!_answersMatch(answer, question.correctAnswer)) {
         incorrectQuestions.add(_QuestionWithIndex(key, question, answer));
@@ -32,35 +39,33 @@ class ReviewAnswersScreen extends StatelessWidget {
     });
 
     return Scaffold(
-      appBar: AppBar(title: Text('مراجعة الأخطاء')),
+      appBar: AppBar(title: const Text('مراجعة الأخطاء')),
       body: incorrectQuestions.isEmpty
-          ? Center(child: Text('كل إجاباتك صحيحة!'))
+          ? const Center(child: Text('كل إجاباتك صحيحة!'))
           : ListView.builder(
         itemCount: incorrectQuestions.length,
         itemBuilder: (context, index) {
           final item = incorrectQuestions[index];
           return Card(
-            margin: EdgeInsets.all(12),
+            margin: const EdgeInsets.all(12),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('السؤال:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('المرحلة ${item.question.stage}:', style: const TextStyle(fontWeight: FontWeight.bold)),
                   Text(item.question.question),
-
-                  SizedBox(height: 10),
-                  Text('إجابتك:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  Text('إجابتك:', style: const TextStyle(fontWeight: FontWeight.bold)),
                   Text(
                     _formatAnswer(item.userAnswer, item.question),
-                    style: TextStyle(color: Colors.red),
+                    style: const TextStyle(color: Colors.red),
                   ),
-
-                  SizedBox(height: 10),
-                  Text('الإجابة الصحيحة:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  Text('الإجابة الصحيحة:', style: const TextStyle(fontWeight: FontWeight.bold)),
                   Text(
                     _formatAnswer(item.question.correctAnswer, item.question),
-                    style: TextStyle(color: Colors.green),
+                    style: const TextStyle(color: Colors.green),
                   ),
                 ],
               ),

@@ -135,15 +135,6 @@ class TestCubit extends Cubit<TestState> {
     }
 
     do {
-      if ((currentStageIndex == 1 || currentStageIndex == 3) &&
-          currentQuestionIndex == 0) {
-        var answer = userAnswers[_currentKey()];
-        if (answer is int &&
-            questions[currentQuestionIndex].answers[answer] == 'لا') {
-          emit(TestCompleteState(userAnswers: userAnswers));
-          return;
-        }
-      }
 
       if (questions[currentQuestionIndex].visibilityCondition != null &&
           !questions[currentQuestionIndex].visibilityCondition!(userAnswers)) {

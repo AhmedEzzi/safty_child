@@ -1,8 +1,10 @@
+import 'dart:convert';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 import 'package:safty_children/core/helpers/navigation_helper.dart';
 import 'package:safty_children/core/helpers/spacer.dart';
@@ -23,14 +25,15 @@ import '../../models/question_model.dart';
 
 class TestScreen extends StatelessWidget {
   const TestScreen({super.key});
+
   Future<void> sendResultToGoogleSheet(
       String name,
       int score,
       int total,
       Map<String, dynamic> userAnswers,
-      List<QuestionModel> stageOneIntroQuestions,
-      { String? id }
-      ) async {
+      List<QuestionModel> stageOneIntroQuestions, {
+        String? id,
+      }) async {
     final url = Uri.parse(
       'https://script.google.com/macros/s/AKfycbxgjtpaeqeJwOfRzyKKrNFMjBvHtRECtLYyFIKxUtH4Pt6qOl-BWlTG5OGzvY0f7TAKHw/exec',
     );
@@ -58,7 +61,6 @@ class TestScreen extends StatelessWidget {
       return '';
     }
 
-    // Stage 0 demographic answers
     final age = extractAnswer('0_0');
     final education = extractAnswer('0_1');
     final gender = extractAnswer('0_2');
@@ -66,19 +68,16 @@ class TestScreen extends StatelessWidget {
     final tookTraining = extractAnswer('0_4');
     final courseCount = extractAnswer('0_5');
 
-    // Stage 3 - Q0: First Aid App
     final usedFirstAidApp = (() {
-      final index = userAnswers['2_0']; // stageThreeQuestions[0]
+      final index = userAnswers['2_0'];
       if (index is int && index >= 0 && index < stageThreeQuestions[0].answers.length) {
         return stageThreeQuestions[0].answers[index];
       }
       return '';
     })();
 
-
-    // Stage 4 - Q0: AI Assistant
     final usedAIAssistant = (() {
-      final index = userAnswers['3_0']; // stageFourQuestions[0]
+      final index = userAnswers['3_0'];
       if (index is int && index >= 0 && index < stageFourQuestions[0].answers.length) {
         return stageFourQuestions[0].answers[index];
       }
@@ -86,7 +85,7 @@ class TestScreen extends StatelessWidget {
     })();
 
     final aiAssistantUsageFrequency = (() {
-      final index = userAnswers['3_1']; // stage 3 (index starts from 0), question 1
+      final index = userAnswers['3_1'];
       if (index is int && index >= 0 && index < stageFourQuestions[1].answers.length) {
         return stageFourQuestions[1].answers[index];
       }
@@ -128,12 +127,49 @@ class TestScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          AppStrings.test,
-          style: AppStyles.appBarStyle.copyWith(fontSize: 20.sp),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
         ),
+        title: Row(
+
+mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Image.asset(
+              'assets/img/image_2025-08-03_01-37-21-removebg-preview.png',
+         height: 40,
+            ),
+            Text(
+              AppStrings.main,
+              style: AppStyles.appBarStyle.copyWith(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+
+        // title: Text(
+        //   AppStrings.main,
+        //   style: AppStyles.appBarStyle.copyWith(
+        //     fontSize: 20.sp,
+        //     fontWeight: FontWeight.bold,
+        //   ),
+        // ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Image.asset(
+              'assets/img/image_2025-08-03_01-37-30-removebg-preview.png',
+              height: 50,
+
+            ),
+          ),
+        ],
         centerTitle: true,
+        automaticallyImplyLeading: true,
         backgroundColor: AppColors.appBarColor,
+        elevation: 46,
       ),
       body: BlocListener<TestCubit, TestState>(
         listener: (context, state) {
@@ -164,25 +200,46 @@ class TestScreen extends StatelessWidget {
                         final total = cubit.totalPoints().round();
                         final currentUserAnswers = Map<String, dynamic>.from(cubit.userAnswers);
 
-                        if (name.isEmpty ) {
+                        if (name.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("الرجاء إدخال الاسم ")),
+                            const SnackBar(content: Text("الرجاء إدخال الاسم")),
                           );
                           return;
                         }
 
-                        Navigator.pop(context); // Close dialog
+                        Navigator.pop(context);
 
-                        // ✅ Add debug print here to log all collected answers
-                        debugPrint("📤 Sending userAnswers: ${cubit.userAnswers}");
+                        showDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (_) => BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                            child: AlertDialog(
+                              backgroundColor: Colors.white.withOpacity(0.7),
+                              content: SizedBox(
+                                height: 100,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: const [
+                                    CircularProgressIndicator(),
+                                    SizedBox(height: 16),
+                                    Text("جاري إرسال النتيجة...", style: TextStyle(fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
 
                         await sendResultToGoogleSheet(
                           name,
                           score,
                           total,
                           currentUserAnswers,
-                          stageOneIntro, // ✅ pass the question list!
+                          stageOneIntro,
                         );
+
+                        Navigator.pop(context);
 
                         showDialog(
                           context: context,
@@ -190,9 +247,8 @@ class TestScreen extends StatelessWidget {
                           builder: (_) => CustomDialog(
                             correctAnswersCount: score.toDouble(),
                             totalQuestions: total.toDouble(),
-                            userAnswers: cubit.userAnswers, // Use the same snapshot
+                            userAnswers: cubit.userAnswers,
                           ),
-
                         );
                       },
                       child: const Text("إرسال"),

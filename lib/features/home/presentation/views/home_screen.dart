@@ -84,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: Image.asset('assets/img/image_2025-08-03_01-37-21-removebg-preview.png'),
+          leading: Image.asset('assets/img/image_2025-08-03_01-37-21-removebg-preview.png'),
 
         title: Text(
           AppStrings.main,

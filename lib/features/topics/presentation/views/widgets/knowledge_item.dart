@@ -15,13 +15,25 @@ class Knowledgeitem extends StatelessWidget {
         style: AppStyles.headStyle,
         textAlign: TextAlign.center,
       ),
-
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Text(
-            subtitle,
-            style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: subtitle
+                .split('\n')
+                .map(
+                  (line) => Text(
+                line,
+                style: TextStyle(
+                  fontSize: line.contains('؟') ? 20.sp : 15.sp,
+                  fontWeight: line.contains('؟')
+                      ? FontWeight.bold
+                      : FontWeight.w500,
+                ),
+              ),
+            )
+                .toList(),
           ),
         ),
       ],
